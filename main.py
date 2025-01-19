@@ -18,11 +18,26 @@ def onLoadDataEvent(tree):
     currentData = gui.getCurrentData(); # loadButton change the value of currentData
     print(f"currentData updated: {currentData.head()}");
 
-def onDownloadDataEvent(tree, data, nDays):
+def onDownloadDataEvent(tree, data):
     global currentData;
-    gui.onDownloadData(tree, data, nDays);
-    currentData = gui.getCurrentData(); # downloadButton change the value of currentData
-    print(f"currentData updated: {currentData.head()}");
+
+    def submitDays():
+        nDays = int(nDaysEntry.get());
+        gui.onDownloadData(tree, data, nDays);
+        currentData = gui.getCurrentData(); # downloadButton change the value of currentData
+        selectDataWindow.destroy();
+
+    # Create the window to select the nnumber of days to display and record
+    selectDataWindow = tk.Toplevel();
+    selectDataWindow.title("Select the number of days to display");
+    selectDataWindow.geometry("600x450");
+
+    tk.Label(selectDataWindow, text = "Number of days:").pack(pady = 5);
+    nDaysEntry = tk.Entry(selectDataWindow);
+    nDaysEntry.pack(pady = 5);
+
+    submitButton = tk.Button(selectDataWindow, text = "Submit", command = submitDays);
+    submitButton.pack(pady = 10);
 
 def onAddDataEvent(tree, startData):
     global currentData;
@@ -32,7 +47,7 @@ def onAddDataEvent(tree, startData):
         purchaseDate = dateEntry.get()
 
         # Process the data (e.g., add to currentData)
-        new_row = pd.DataFrame([[ticker, priceEntry, dateEntry]], columns=["Ticker", "PurchasePrice", "PurchaseDate"])
+        new_row = pd.DataFrame([[ticker, priceEntry, dateEntry]], columns = ["Ticker", "PurchasePrice", "PurchaseDate"])
         currentData = pd.concat([currentData, new_row], ignore_index = True)
         gui.updateTable(tree, currentData)
         addWindow.destroy()
@@ -49,6 +64,10 @@ def onAddDataEvent(tree, startData):
     tk.Label(addWindow, text = "Purchase Price:").pack(pady=5)
     priceEntry = tk.Entry(addWindow)
     priceEntry.pack(pady=5)
+
+    tk.Label(addWindow, text = "Purchase Date (YYYY-MM-DD):").pack(pady=5)
+    dateEntry = tk.Entry(addWindow)
+    dateEntry.pack(pady=5)
 
     tk.Label(addWindow, text = "Purchase Date (YYYY-MM-DD):").pack(pady=5)
     dateEntry = tk.Entry(addWindow)
@@ -89,8 +108,7 @@ def main():
     # called directly instead of passing a reference to it. The lambda function is used to pass a reference of the function 
     loadButton.pack(pady = 10)
     
-    nDays = 252; # Display last nDays of data
-    downloadDataButton = tk.Button(root, text = "Download New Data", command = lambda: onDownloadDataEvent(tree, currentData, nDays))
+    downloadDataButton = tk.Button(root, text = "Download New Data", command = lambda: onDownloadDataEvent(tree, currentData))
     downloadDataButton.pack(pady = 10)
 
     addDataButton = tk.Button(root, text = "Add New Data", command = lambda: onAddDataEvent(tree, currentData))
