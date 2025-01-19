@@ -133,13 +133,13 @@ def onDownloadData(tree, startData, nDays):
     for j in range(3, newData.shape[1]):
         newData.iloc[:, j] = newData.iloc[:, j].astype(float).round(2);
     
-    # Assign newData before truncation 
-    currentData = newData;
-    
     # Truncate to last 30 days of data
     newData = pd.concat([newData.loc[:, ['Ticker', 'CompanyName', 'PurchaseDate', 'PurchasePrice', 'Quantity']],
                                  newData.iloc[:, range(-nDays, 0)]],
                                  axis = 1)
+    
+    # Current data always contains the current view in the tree
+    currentData = newData;
     
     updateTable(tree = tree, data = newData)
     messagebox.showinfo("Info", "New data downloaded successfully")
