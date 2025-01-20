@@ -6,10 +6,10 @@ import os
 import sys
 
 # Import custom modules
-from src.utils import gui, excel_generator
+from src.utils import gui
 
 # # Write Excel
-# outFileName = datetime.datetime.today().strftime('%Y%m%d') + "_results"
+# outFileName = 
 # generate_excel(finalDataFrame, outFileName)
 
 def onLoadDataEvent(tree):
@@ -19,15 +19,15 @@ def onLoadDataEvent(tree):
     print(f"currentData updated: {currentData.head()}");
 
 def onDownloadDataEvent(tree, data):
-    global currentData;
-
     def submitDays():
+        global currentData; # The declaration of a variable as global must be contained where the assignment lives; otherwise, a new local variabale would be created
         nDays = int(nDaysEntry.get());
         gui.onDownloadData(tree, data, nDays);
         currentData = gui.getCurrentData(); # downloadButton change the value of currentData
+        print(f"currentData updated: {currentData.head()}");
         selectDataWindow.destroy();
 
-    # Create the window to select the nnumber of days to display and record
+    # Create the window to select the number of days to display and record
     selectDataWindow = tk.Toplevel();
     selectDataWindow.title("Select the number of days to display");
     selectDataWindow.geometry("600x450");
@@ -40,46 +40,52 @@ def onDownloadDataEvent(tree, data):
     submitButton.pack(pady = 10);
 
 def onAddDataEvent(tree, startData):
-    global currentData;
     def submitData():
-        ticker = tickerEntry.get()
-        purchasePrice = float(priceEntry.get())
-        purchaseDate = dateEntry.get()
+        global currentData;
+        ticker = tickerEntry.get();
+        purchasePrice = float(float(priceEntry.get()));
+        purchaseDate = dateEntry.get();
+        quantity = float(quantityEntry.get());
+
+        # Debug:
+        ticker = "MSFT";
+        purchasePrice = 78.78;
+        purchaseDate = "2023-10-23";
+        quantity = 32;
 
         # Process the data (e.g., add to currentData)
-        new_row = pd.DataFrame([[ticker, priceEntry, dateEntry]], columns = ["Ticker", "PurchasePrice", "PurchaseDate"])
-        currentData = pd.concat([currentData, new_row], ignore_index = True)
-        gui.updateTable(tree, currentData)
-        addWindow.destroy()
+        newRow = pd.DataFrame([[ticker, priceEntry, dateEntry, quantity]], columns = ["Ticker", "PurchasePrice", "PurchaseDate", "Quantity"]);
+        currentData = pd.concat([currentData, newRow], ignore_index = True);
+        gui.onAddData(tree, startData, newRow);
+        currentData = gui.getCurrentData(); # downloadButton change the value of currentData
+        print(f"currentData updated: {currentData.head()}");
+        addWindow.destroy();
 
     # Create the window to add data
-    addWindow = tk.Toplevel()
-    addWindow.title("Add New Data")
-    addWindow.geometry("600x450")
+    addWindow = tk.Toplevel();
+    addWindow.title("Add new data");
+    addWindow.geometry("600x450");
 
-    tk.Label(addWindow, text = "Ticker:").pack(pady=5)
-    tickerEntry = tk.Entry(addWindow)
-    tickerEntry.pack(pady = 5)
+    tk.Label(addWindow, text = "Ticker:").pack(pady = 5);
+    tickerEntry = tk.Entry(addWindow);
+    tickerEntry.pack(pady = 5);
 
-    tk.Label(addWindow, text = "Purchase Price:").pack(pady=5)
-    priceEntry = tk.Entry(addWindow)
-    priceEntry.pack(pady=5)
+    tk.Label(addWindow, text = "Purchase Price (use . as decimal separator):").pack(pady = 5);
+    priceEntry = tk.Entry(addWindow);
+    priceEntry.pack(pady = 5);
 
-    tk.Label(addWindow, text = "Purchase Date (YYYY-MM-DD):").pack(pady=5)
-    dateEntry = tk.Entry(addWindow)
-    dateEntry.pack(pady=5)
+    tk.Label(addWindow, text = "Purchase Date (YYYY-MM-DD):").pack(pady = 5);
+    dateEntry = tk.Entry(addWindow);
+    dateEntry.pack(pady=5);
 
-    tk.Label(addWindow, text = "Purchase Date (YYYY-MM-DD):").pack(pady=5)
-    dateEntry = tk.Entry(addWindow)
-    dateEntry.pack(pady=5)
+    tk.Label(addWindow, text = "Quantity (use . as decimal separator):").pack(pady = 5);
+    quantityEntry = tk.Entry(addWindow);
+    quantityEntry.pack(pady=5);
 
-    submit_button = tk.Button(addWindow, text = "Submit", command = submitData)
-    submit_button.pack(pady = 10)
+    submitButton = tk.Button(addWindow, text = "Submit", command = submitData);
+    submitButton.pack(pady = 10);
+
     
-    gui.onAddData(tree, startData);
-    currentData = gui.getCurrentData(); # downloadButton change the value of currentData
-    print(f"currentData updated: {currentData.head()}");
-
 def main():
     # GUI setup
     root = tk.Tk() # Create a widget/frame
@@ -114,14 +120,14 @@ def main():
     addDataButton = tk.Button(root, text = "Add New Data", command = lambda: onAddDataEvent(tree, currentData))
     addDataButton.pack(pady = 10)
 
-    # saveDataButton = tk.Button(root, text = "Save Current View", command = lambda: onSaveDataEvent(tree, currentData))
-    # saveDataButton.pack(pady = 10)
-    # 
+    saveDataButton = tk.Button(root, text = "Save Current View", command = lambda: gui.onSaveData(currentData))
+    saveDataButton.pack(pady = 10)
+    
     # computeTotalRow = tk.Button(root, text = "Compute Total", command = lambda: onComputeTotalEvent(tree, currentData))
     # computeTotalRow.pack(pady = 10)
 
-    # plot_button = tk.Button(root, text = "Plot Data", command = on_plot_data)
-    # plot_button.pack(pady = 10)
+    # plotButton = tk.Button(root, text = "Plot Data", command = on_plot_data)
+    # plotButton.pack(pady = 10)
 
     # computeVaRButton = tk.Button(root, text = "Plot Data", command = lambda: onComputeVaREvent(tree, currentData))
     # computeVaRButton.pack(pady = 10)

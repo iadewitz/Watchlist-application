@@ -3,6 +3,7 @@ from tkinter import filedialog, messagebox
 import pandas as pd
 import datetime
 from src.utils.download_data import *
+from src.utils.excel_generator import *
 
 # Global variables definition
 currentData = None;
@@ -141,10 +142,10 @@ def onDownloadData(tree, startData, nDays):
     # Current data always contains the current view in the tree
     currentData = newData;
     
-    updateTable(tree = tree, data = newData)
+    updateTable(tree, currentData)
     messagebox.showinfo("Info", "New data downloaded successfully")
 
-def onAddData(tree, startData, ticker, purchaseDate, purchasePrice):
+def onAddData(tree, startData, newRow):
 
     # Get startData relevant dates
     lastDate = startData.columns[-1] 
@@ -153,11 +154,11 @@ def onAddData(tree, startData, ticker, purchaseDate, purchasePrice):
     stockValue = dict()
     stockValue[ticker] = get_value_by_ticker_yf(ticker, start = startDate, end = lastDate)
 
-    
+def onSaveData(dataFrame):
+    filePath = filedialog.askdirectory();
+    generateExcel(dataFrame, filePath);
+    messagebox.showinfo("Info", "Data saved successfully @ " + filePath + " folder");
 
 
 
-
-
-# def onSaveData(tree = None, data = currentData):
 

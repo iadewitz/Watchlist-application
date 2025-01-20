@@ -1,12 +1,14 @@
-import os
+import datetime
+import pandas
 
-def generate_excel(dataFrame, outFileName):
+def generateExcel(dataFrame, folder):
     """
     Writes the given DataFrame to an Excel file.
 
     Parameters:
     dataFrame (pd.DataFrame): The DataFrame to write to Excel.
-    file_path (str): The path where the Excel file will be saved.
+    folder (str): The path where the Excel file will be saved.
     """
-    filePath = os.getcwd() + "\\" + "out" + "\\" + outFileName + ".xlsx"
-    dataFrame.to_excel(filePath, index = False)
+    outFileName = "/" + datetime.datetime.today().strftime('%Y%m%d') + "_results" + ".xlsx";
+    filePath = folder + outFileName;
+    dataFrame.to_excel(filePath, index = False);
