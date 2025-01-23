@@ -143,7 +143,7 @@ def main():
 
     # Add vertical scrollbar to the Treeview
     vsb = ttk.Scrollbar(tree, orient = "vertical", command = tree.yview)
-    vsb.pack(side = tk.LEFT, fill = tk.Y)
+    vsb.pack(side = tk.RIGHT, fill = tk.Y)
 
     # Add horizontal scrollbar to the Treeview
     hsb = ttk.Scrollbar(tree, orient = "horizontal", command = tree.xview)
@@ -170,7 +170,7 @@ def main():
     fileMenu.add_command(label = "Load Last Data", command = lambda: onLoadDataEvent(tree))
     fileMenu.add_command(label = "Save Current View", command = lambda: gui.onSaveData(currentData))
     fileMenu.add_separator()
-    fileMenu.add_command(label = "Exit", command = root.quit)
+    fileMenu.add_command(label = "Exit", command = root.destroy)
 
     # Create an Edit menu
     editMenu = tk.Menu(menuBar, tearoff = 0)
@@ -185,8 +185,8 @@ def main():
     # plotButton = tk.Button(root, text = "Plot Data", command = on_plot_data)
     # plotButton.pack(pady = 10)
 
-    # computeVaRButton = tk.Button(root, text = "Plot Data", command = lambda: onComputeVaREvent(tree, currentData))
-    # computeVaRButton.pack(pady = 10)
+    # computeRiskMetricsButton = tk.Button(root, text = "Plot Data", command = lambda: onComputeVaREvent(tree, currentData))
+    # computeRiskMetricsButton.pack(pady = 10)
 
     root.mainloop()
 
