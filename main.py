@@ -41,6 +41,7 @@ def onDownloadDataEvent(tree, data):
 
 def onAddDataEvent(tree, startData):
     global currentData;
+
     def submitData():
         global currentData;
         startDate = None;
@@ -125,7 +126,7 @@ def onAddDataEvent(tree, startData):
 
         submitButton = tk.Button(addWindow, text = "Submit", command = submitData);
         submitButton.pack(pady = 10);
-    
+
 def main():
     # GUI setup
     root = tk.Tk() # Create a widget/frame
@@ -149,22 +150,37 @@ def main():
     hsb.pack(side = tk.BOTTOM, fill = tk.X)
 
     tree.configure(yscrollcommand = vsb.set, xscrollcommand = hsb.set)
-
-    loadButton = tk.Button(root, text = "Load Last Data", command = lambda: onLoadDataEvent(tree)) # The command parameter of a button is called immediately after its creation if the function is
-    # called directly instead of passing a reference to it. The lambda function is used to pass a reference of the function 
-    loadButton.pack(pady = 10)
     
-    downloadDataButton = tk.Button(root, text = "Download New Data", command = lambda: onDownloadDataEvent(tree, currentData))
+    # Download button
+    downloadDataButton = tk.Button(root, text = "Download New Data", command = lambda: onDownloadDataEvent(tree, currentData)) # The command parameter of a button is called immediately after
+    # its creation if the function is called directly instead of passing a reference to it. The lambda function is used to pass a reference of the function 
     downloadDataButton.pack(pady = 10)
 
+    # Add data button
     addDataButton = tk.Button(root, text = "Add New Data", command = lambda: onAddDataEvent(tree, currentData))
     addDataButton.pack(pady = 10)
 
-    saveDataButton = tk.Button(root, text = "Save Current View", command = lambda: gui.onSaveData(currentData))
-    saveDataButton.pack(pady = 10)
-    
-    # computeTotalRow = tk.Button(root, text = "Compute Total", command = lambda: onComputeTotalEvent(tree, currentData))
-    # computeTotalRow.pack(pady = 10)
+    # Create a menu bar
+    menuBar = tk.Menu(root)
+    root.config(menu = menuBar)
+
+    # Create a File menu
+    fileMenu = tk.Menu(menuBar, tearoff = 0)
+    menuBar.add_cascade(label = "File", menu = fileMenu)
+    fileMenu.add_command(label = "Load Last Data", command = lambda: onLoadDataEvent(tree))
+    fileMenu.add_command(label = "Save Current View", command = lambda: gui.onSaveData(currentData))
+    fileMenu.add_separator()
+    fileMenu.add_command(label = "Exit", command = root.quit)
+
+    # Create an Edit menu
+    editMenu = tk.Menu(menuBar, tearoff = 0)
+    menuBar.add_cascade(label = "Edit", menu = editMenu)
+    editMenu.add_command(label = "Compute Total", command = lambda: onComputeTotalEvent(tree, currentData))
+
+    # Create a Help menu
+    helpMenu = tk.Menu(menuBar, tearoff = 0)
+    menuBar.add_cascade(label = "Help", menu = helpMenu)
+    helpMenu.add_command(label = "About", command = lambda: messagebox.showinfo("About", "Stock Data Manager v1.0.\nVisit https://github.com/iadewitz/Watchlist-application."))
 
     # plotButton = tk.Button(root, text = "Plot Data", command = on_plot_data)
     # plotButton.pack(pady = 10)
