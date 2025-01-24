@@ -4,6 +4,7 @@ import pandas as pd
 import datetime
 from src.utils.download_data import *
 from src.utils.excel_generator import *
+import re
 
 # Global variables definition
 currentData = None;
@@ -134,7 +135,7 @@ def onDownloadData(tree, startData, nDays):
     for j in range(3, newData.shape[1]):
         newData.iloc[:, j] = newData.iloc[:, j].astype(float).round(2);
     
-    # Truncate to last 30 days of data
+    # Truncate to last nDays days of data
     newData = pd.concat([newData.loc[:, ['Ticker', 'CompanyName', 'PurchaseDate', 'PurchasePrice', 'Quantity']],
                                  newData.iloc[:, range(-nDays, 0)]],
                                  axis = 1)
@@ -152,10 +153,57 @@ def onAddData(tree, startData, newRow, startDate, endDate):
     if currentData is None:
         startDate = startDate;
         endDate = endDate;
-    else:
-        endDate = startData.columns[-1];
-        startDate = startData.columns[5]; # The first date is always the 5th column 
 
+        # Dataframe with downloaded data
+        outDataFrame = get_value_by_ticker_yf(newRow.loc[0, "Ticker"], start = startDate, end = endDate);
+    
+        # Create the key for the new row
+        elements = [newRow.loc[0, "Ticker"], 
+                        newRow.loc[0, "PurchaseDate"], 
+                        str(newRow.loc[0, "PurchasePrice"]), 
+                        str(newRow.loc[0, "Quantity"])];
+        key = "_".join(elements);
+    
+        # Create the row that will be concatanated to currentData
+        res = pd.DataFrame(index = [key])
+        res.loc[key, "Ticker"] = newRow.loc[0, "Ticker"];
+        res.loc[key, "CompanyName"] = outDataFrame.loc[0, "Name"];
+        res.loc[key, "PurchaseDate"] = newRow.loc[0, "PurchaseDate"];
+        res.loc[key, "PurchasePrice"] = newRow.loc[0, "PurchasePrice"];
+        res.loc[key, "Quantity"] = newRow.loc[0, "Quantity"];
+        res.loc[key, "Currency"] = ", ".join(outDataFrame["Currency"].unique());
+    
+        # Now fill in the prices
+        for date in outDataFrame["Date"]:
+            index = outDataFrame.index[date == outDataFrame["Date"]];
+            res.loc[key, date] = outDataFrame.loc[index, "Close_" + newRow.loc[0, "Ticker"]].values[0];
+
+        # Uniformity
+        newData = res;
+
+        # Round to 2 decimals
+        # Define the regular expression pattern for YYYY-MM-DD
+        datePattern = re.compile(r'^\d{4}-\d{2}-\d{2}$');
+    
+        # Find indices of columns that match the date pattern
+        floatIndices = [i for i, col in enumerate(newData.columns) if col == "Quantity" or datePattern.match(col)];
+
+        for j in floatIndices:
+            newData.iloc[:, j] = newData.iloc[:, j].astype(float).round(2);
+        
+        # Current data always contains the current view in the tree
+        currentData = newData;
+        
+        updateTable(tree, currentData);
+    else:
+        # Find first and last dates
+        datePattern = re.compile(r'^\d{4}-\d{2}-\d{2}$');
+
+        # Find indices of columns that match the date pattern
+        dateIndices = [i for i, col in enumerate(startData.columns) if datePattern.match(col)];
+        endDate = startData.columns[dateIndices[-1]];
+        startDate = startData.columns[dateIndices[0]]; 
+        
         # Dataframe with downloaded data
         outDataFrame = get_value_by_ticker_yf(newRow.loc[0, "Ticker"], start = startDate, end = endDate);        
 
@@ -173,18 +221,24 @@ def onAddData(tree, startData, newRow, startDate, endDate):
         res.loc[key, "PurchaseDate"] = newRow.loc[0, "PurchaseDate"];
         res.loc[key, "PurchasePrice"] = newRow.loc[0, "PurchasePrice"];
         res.loc[key, "Quantity"] = newRow.loc[0, "Quantity"];
+        res.loc[key, "Currency"] = ", ".join(outDataFrame["Currency"].unique());
 
         # Now fill in the prices
         for date in outDataFrame["Date"]:
             index = outDataFrame.index[date == outDataFrame["Date"]];
-            res.loc[key, date] = float(outDataFrame.iloc[index, 1]);
-            # res.loc[key, "Quantity"] = newRow.loc[0, "Quantity"];
+            res.loc[key, date] = outDataFrame.loc[index, "Close_" + newRow.loc[0, "Ticker"]].values[0];
 
         # Concat on row
         newData = pd.concat([currentData, res], axis = 0);
 
         # Round to 2 decimals
-        for j in range(3, newData.shape[1]):
+        # Define the regular expression pattern for YYYY-MM-DD
+        datePattern = re.compile(r'^\d{4}-\d{2}-\d{2}$');
+        
+        # Find indices of columns that match the date pattern
+        floatIndices = [i for i, col in enumerate(newData.columns) if col == "Quantity" or datePattern.match(col)];
+
+        for j in floatIndices:
             newData.iloc[:, j] = newData.iloc[:, j].astype(float).round(2);
         
         # Current data always contains the current view in the tree

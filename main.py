@@ -48,25 +48,18 @@ def onAddDataEvent(tree, startData):
         endDate = None;
 
         ticker = tickerEntry.get();
-        purchasePrice = float(float(priceEntry.get()));
+        purchasePrice = float(priceEntry.get());
         purchaseDate = dateEntry.get();
         quantity = float(quantityEntry.get());
         if currentData is None:
             startDate = startDateEntry.get();
             endDate = endDateEntry.get();
 
-        # # Debug:
-        # ticker = "MSFT";
-        # purchasePrice = 78.78;
-        # purchaseDate = "2023-10-23";
-        # quantity = 32;
-        # startData = currentData;
-
         # Process the data (e.g., add to currentData)
         newRow = pd.DataFrame([[ticker, purchasePrice, purchaseDate, quantity]], columns = ["Ticker", "PurchasePrice", "PurchaseDate", "Quantity"]);
         gui.onAddData(tree, startData, newRow, startDate, endDate);
         currentData = gui.getCurrentData(); 
-        print(f"currentData updated: {currentData.head()}");
+        # print(f"currentData updated: {currentData.head()}");
         addWindow.destroy();
 
     # Two possible entries: if no data has been uploaded -> insert also the start and end dates; otherwise take them from currentData 
