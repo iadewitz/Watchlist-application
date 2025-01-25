@@ -64,17 +64,10 @@ def onDownloadData(tree, startData, nDays):
     '''
     global currentData;
 
-    # # Debug
-    # tree = tree;
-    # startData = currentData;
-    # nDays = 30;
-
-    # Get lastRunDate next date
-    lastRunDate = startData.columns[-1] 
-    lastRunDate = datetime.datetime.strptime(lastRunDate, '%Y-%m-%d') # Cast string to datetime 
-    startDate = lastRunDate + datetime.timedelta(days = 1)
-    startDate = startDate.strftime('%Y-%m-%d')
+    # Get relevant dates
     endDate = datetime.datetime.today().strftime('%Y-%m-%d')
+    startDate = datetime.datetime.strptime(endDate, '%Y-%m-%d') - datetime.timedelta(days = nDays)
+    startDate = startDate.strftime('%Y-%m-%d')
 
     uniqueTicker = list(set(startData["Ticker"])) # Get unique tickers for speeding up download
     stockValue = dict()
@@ -99,23 +92,6 @@ def onDownloadData(tree, startData, nDays):
                     str(startData.loc[j, "Quantity"])]
         keys.append("_".join(elements))
 
-    # Retrieve information to create the key for the new data
-
-    # Purchase date
-    purchaseDate = dict()
-    for j in startData.index:
-        purchaseDate[j] = startData.loc[j, "PurchaseDate"]
-
-    # Purchase price
-    purchasePrice = dict()
-    for j in startData.index:
-        purchasePrice[j] = startData.loc[j, "PurchasePrice"]
-
-    # Quantity
-    quantity = dict()
-    for j in startData.index:
-        quantity[j] = startData.loc[j, "Quantity"]
-
     res = pd.DataFrame(index = startData.index)
     for key in res.index:
         ticker = str.split(key, sep = "_")[0]
@@ -125,20 +101,31 @@ def onDownloadData(tree, startData, nDays):
             i += 1
     
     # Merge on indices
-    newData = pd.merge(currentData, res, left_index = True, right_index = True, how = 'outer');
+    # Define the regular expression pattern for YYYY-MM-DD
+    datePattern = re.compile(r'^\d{4}-\d{2}-\d{2}$');
+        
+    # Find indices of columns that match the date pattern
+    notDatesIndices = [i for i, col in enumerate(startData.columns) if not datePattern.match(col)];
+    newData = pd.merge(startData.iloc[:, notDatesIndices], res, left_index = True, right_index = True, how = 'outer');
 
     # Fill NaN
     newData = newData.ffill(axis = 1) # Forward fill: propagate the last known value (from left to right)
     # to the right (axis = 1) or below (axis = 0)
 
     # Round to 2 decimals
-    for j in range(3, newData.shape[1]):
+    # Define the regular expression pattern for YYYY-MM-DD
+    datePattern = re.compile(r'^\d{4}-\d{2}-\d{2}$');
+        
+    # Find indices of columns that match the date pattern
+    floatIndices = [i for i, col in enumerate(newData.columns) if datePattern.match(col)];
+
+    for j in floatIndices:
         newData.iloc[:, j] = newData.iloc[:, j].astype(float).round(2);
     
-    # Truncate to last nDays days of data
-    newData = pd.concat([newData.loc[:, ['Ticker', 'CompanyName', 'PurchaseDate', 'PurchasePrice', 'Quantity']],
-                                 newData.iloc[:, range(-nDays, 0)]],
-                                 axis = 1)
+    # # Truncate to last nDays days of data
+    # newData = pd.concat([newData.loc[:, ['Ticker', 'CompanyName', 'PurchaseDate', 'PurchasePrice', 'Quantity']],
+    #                              newData.iloc[:, range(-nDays, 0)]],
+    #                              axis = 1)
     
     # Current data always contains the current view in the tree
     currentData = newData;
@@ -246,7 +233,6 @@ def onAddData(tree, startData, newRow, startDate, endDate):
         
         updateTable(tree, currentData)
         messagebox.showinfo("Info", "New data downloaded successfully.\nRemember to refresh the data!")
-
 
 
 def onSaveData(dataFrame):

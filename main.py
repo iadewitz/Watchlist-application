@@ -32,9 +32,17 @@ def onDownloadDataEvent(tree, data):
     selectDataWindow.title("Select the number of days to display");
     selectDataWindow.geometry("600x450");
 
-    tk.Label(selectDataWindow, text = "Number of days:").pack(pady = 5);
+    tk.Label(selectDataWindow, text = "Last number of days:").pack(pady = 5);
     nDaysEntry = tk.Entry(selectDataWindow);
     nDaysEntry.pack(pady = 5);
+
+    tk.Label(selectDataWindow, text = "Start Date:").pack(pady = 5);
+    startDateEntry = tk.Entry(selectDataWindow);
+    startDateEntry.pack(pady = 5);
+
+    tk.Label(selectDataWindow, text = "End Date:").pack(pady = 5);
+    endDateEntry = tk.Entry(selectDataWindow);
+    endDateEntry.pack(pady = 5);
 
     submitButton = tk.Button(selectDataWindow, text = "Submit", command = submitDays);
     submitButton.pack(pady = 10);
