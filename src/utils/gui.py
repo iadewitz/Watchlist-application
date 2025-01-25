@@ -72,7 +72,7 @@ def onDownloadData(tree, startData, nDays):
     uniqueTicker = list(set(startData["Ticker"])) # Get unique tickers for speeding up download
     stockValue = dict()
     for item in uniqueTicker:
-        stockValue[item] = get_value_by_ticker_yf(item, start = startDate, end = endDate)
+        stockValue[item] = getValueByTickerYf(item, start = startDate, end = endDate)
 
     # Dataframe with downloaded data
     outDataFrame = pd.DataFrame();
@@ -142,7 +142,7 @@ def onAddData(tree, startData, newRow, startDate, endDate):
         endDate = endDate;
 
         # Dataframe with downloaded data
-        outDataFrame = get_value_by_ticker_yf(newRow.loc[0, "Ticker"], start = startDate, end = endDate);
+        outDataFrame = getValueByTickerYf(newRow.loc[0, "Ticker"], start = startDate, end = endDate);
     
         # Create the key for the new row
         elements = [newRow.loc[0, "Ticker"], 
@@ -192,7 +192,7 @@ def onAddData(tree, startData, newRow, startDate, endDate):
         startDate = startData.columns[dateIndices[0]]; 
         
         # Dataframe with downloaded data
-        outDataFrame = get_value_by_ticker_yf(newRow.loc[0, "Ticker"], start = startDate, end = endDate);        
+        outDataFrame = getValueByTickerYf(newRow.loc[0, "Ticker"], start = startDate, end = endDate);        
 
         # Create the key for the new row
         elements = [newRow.loc[0, "Ticker"], 
