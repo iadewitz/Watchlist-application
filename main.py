@@ -135,6 +135,22 @@ def onAddDataEvent(tree, startData):
         submitButton = tk.Button(addWindow, text = "Submit", command = submitData);
         submitButton.pack(pady = 10);
 
+def onComputeTotalEvent(tree, currentData):
+    def computeTotal():
+        global currentData;
+
+    computeTotalWindow = tk.Toplevel();
+    computeTotalWindow.title("Compute total");
+    computeTotalWindow.geometry("600x450");
+
+    tk.Label(computeTotalWindow, text = "Currency:").pack(pady = 5);
+    currencyEntry = tk.Entry(computeTotalWindow);
+    currencyEntry.pack(pady = 5);
+
+    submitButton = tk.Button(computeTotalWindow, text = "Submit", command = computeTotal);
+    submitButton.pack(pady = 10);
+
+
 def main():
     # GUI setup
     root = tk.Tk() # Create a widget/frame
@@ -180,20 +196,23 @@ def main():
     fileMenu.add_separator()
     fileMenu.add_command(label = "Exit", command = root.destroy)
 
-    # Create an Edit menu
-    editMenu = tk.Menu(menuBar, tearoff = 0)
-    menuBar.add_cascade(label = "Edit", menu = editMenu)
-    editMenu.add_command(label = "Compute Total", command = lambda: onComputeTotalEvent(tree, currentData))
+    # Create an Compute menu
+    computeMenu = tk.Menu(menuBar, tearoff = 0)
+    menuBar.add_cascade(label = "Compute", menu = computeMenu)
+    computeMenu.add_command(label = "Compute Total", command = lambda: onComputeTotalEvent(tree, currentData))
 
-    
+    # Create a View menu
+    viewMenu = tk.Menu(menuBar, tearoff = 0)
+    menuBar.add_cascade(label = "View", menu = viewMenu)
+    viewMenu.add_command(label = "Prices", command = lambda: onShowPrices(tree, currentData));
+    viewMenu.add_command(label = "Returns", command = lambda: onShowReturns(tree, currentData));
+    viewMenu.add_separator()
+    viewMenu.add_command(label = "Plot", command = lambda: onPlot(currentData, riskMetrics));
 
     # Create a Help menu
     helpMenu = tk.Menu(menuBar, tearoff = 0)
     menuBar.add_cascade(label = "Help", menu = helpMenu)
     helpMenu.add_command(label = "About", command = lambda: messagebox.showinfo("About", "Stock Data Manager v1.0.\nVisit https://github.com/iadewitz/Watchlist-application."))
-
-    # plotButton = tk.Button(root, text = "Plot Data", command = on_plot_data)
-    # plotButton.pack(pady = 10)
 
     # computeRiskMetricsButton = tk.Button(root, text = "Plot Data", command = lambda: onComputeVaREvent(tree, currentData))
     # computeRiskMetricsButton.pack(pady = 10)
@@ -202,6 +221,7 @@ def main():
 
 # Variables definiton
 currentData = None;
+riskMetrics = None;
 
 if __name__ == "__main__":
     try:

@@ -6,9 +6,6 @@ from src.utils.download_data import *
 from src.utils.excel_generator import *
 import re
 
-# Global variables definition
-currentData = None;
-
 def updateTable(tree, data):
     # Delete existing data
     for i in tree.get_children():
@@ -73,36 +70,37 @@ def onDownloadData(tree, startData, nDays, startDate, endDate):
         startDate = startDate;
         endDate = endDate;
     uniqueTicker = list(set(startData["Ticker"])) # Get unique tickers for speeding up download
-    stockValue = dict()
-    for item in uniqueTicker:
-        stockValue[item] = getValueByTickerYf(item, start = startDate, end = endDate)
+    isNaN = True;
+    while isNaN:
+        stockValue = dict()
+        for item in uniqueTicker:
+            stockValue[item] = getValueByTickerYf(item, start = startDate, end = endDate)
 
-    # Dataframe with downloaded data
-    outDataFrame = pd.DataFrame();
-    for item in stockValue.keys() :
-        if outDataFrame.empty:
-            outDataFrame = stockValue[item];
-        else:
-            outDataFrame = pd.merge(outDataFrame, stockValue[item], on = "Date", how = "outer", suffixes = ('', f'_{item}'));
+        # Dataframe with downloaded data
+        outDataFrame = pd.DataFrame();
+        for item in stockValue.keys() :
+            if outDataFrame.empty:
+                outDataFrame = stockValue[item];
+            else:
+                outDataFrame = pd.merge(outDataFrame, stockValue[item], on = "Date", how = "outer", suffixes = ('', f'_{item}'));
 
-    outDataFrame.columns
-
-    keys = list()
-    for j in startData.index:
-        elements = [startData.loc[j, "Ticker"], 
-                    startData.loc[j, "PurchaseDate"], 
-                    str(startData.loc[j, "PurchasePrice"]), 
-                    str(startData.loc[j, "Quantity"])]
-        keys.append("_".join(elements))
-
-    res = pd.DataFrame(index = startData.index)
-    for key in res.index:
-        ticker = str.split(key, sep = "_")[0]
-        i = 0
-        for date in outDataFrame["Date"]:
-            res.loc[key, date] = outDataFrame.loc[i, "Close_" + ticker]
-            i += 1
+        res = pd.DataFrame(index = startData.index)
+        for key in res.index:
+            ticker = str.split(key, sep = "_")[0]
+            i = 0
+            for date in outDataFrame["Date"]:
+                res.loc[key, date] = outDataFrame.loc[i, "Close_" + ticker]
+                i += 1
+        
+        if sum(res.iloc[:, 0].isna()) == 0:
+            isNaN = False;
+        else: 
+            startDate = (datetime.datetime.strptime(startDate, '%Y-%m-%d') - datetime.timedelta(days = 1)).strftime('%Y-%m-%d');
     
+    # Fill NaN
+    res = res.ffill(axis = 1) # Forward fill: propagate the last known value (from left to right)
+    # to the right (axis = 1) or below (axis = 0)
+
     # Merge on indices
     # Define the regular expression pattern for YYYY-MM-DD
     datePattern = re.compile(r'^\d{4}-\d{2}-\d{2}$');
@@ -110,10 +108,6 @@ def onDownloadData(tree, startData, nDays, startDate, endDate):
     # Find indices of columns that match the date pattern
     notDatesIndices = [i for i, col in enumerate(startData.columns) if not datePattern.match(col)];
     newData = pd.merge(startData.iloc[:, notDatesIndices], res, left_index = True, right_index = True, how = 'outer');
-
-    # Fill NaN
-    newData = newData.ffill(axis = 1) # Forward fill: propagate the last known value (from left to right)
-    # to the right (axis = 1) or below (axis = 0)
 
     # Round to 2 decimals
     # Define the regular expression pattern for YYYY-MM-DD
@@ -205,7 +199,18 @@ def onAddData(tree, startData, newRow, startDate, endDate):
         key = "_".join(elements);
         
         # Create the row that will be concatanated to currentData
-        res = pd.DataFrame(index = [key], columns = currentData.columns)
+        # Create ordered columns
+        # Get unique dates
+        uniqueDates = list(set(currentData.columns[dateIndices].tolist() + outDataFrame["Date"].tolist()));
+
+        # Convert to datetime objects and sort
+        uniqueDates = sorted([datetime.datetime.strptime(date, '%Y-%m-%d') for date in uniqueDates])
+
+        # Convert back to strings
+        uniqueDates = [date.strftime('%Y-%m-%d') for date in uniqueDates]
+
+        newColumns = [col for i, col in enumerate(currentData.columns) if i not in dateIndices] + uniqueDates     
+        res = pd.DataFrame(index = [key], columns = newColumns);
         res.loc[key, "Ticker"] = newRow.loc[0, "Ticker"];
         res.loc[key, "CompanyName"] = outDataFrame.loc[0, "Name"];
         res.loc[key, "PurchaseDate"] = newRow.loc[0, "PurchaseDate"];
@@ -219,7 +224,12 @@ def onAddData(tree, startData, newRow, startDate, endDate):
             res.loc[key, date] = outDataFrame.loc[index, "Close_" + newRow.loc[0, "Ticker"]].values[0];
 
         # Concat on row
-        newData = pd.concat([currentData, res], axis = 0);
+        newData = pd.DataFrame(index = list(currentData.index), columns = newColumns)
+        for index in currentData.index:
+            for col in currentData.columns:
+                newData.at[index, col] = currentData.at[index, col];
+        
+        newData = pd.concat([newData, res], axis = 0)
 
         # Round to 2 decimals
         # Define the regular expression pattern for YYYY-MM-DD
