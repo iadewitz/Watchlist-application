@@ -1,3 +1,5 @@
 
 .vscode/settings.json
 build exe file.txt
+src/utils/__pycache__/gui.cpython-312.pyc
+/out
