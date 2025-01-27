@@ -139,6 +139,13 @@ def onComputeTotalEvent(tree, currentData):
     def computeTotal():
         global currentData;
 
+        currency = currencyEntry.get();
+        if currentData is None or currentData.empty:
+            messagebox.showerror("Error", "There are no loaded data!");
+        else:
+            gui.onComputeTotal(tree, currentData, currency);
+        computeTotalWindow.destroy();
+
     computeTotalWindow = tk.Toplevel();
     computeTotalWindow.title("Compute total");
     computeTotalWindow.geometry("600x450");
@@ -200,6 +207,9 @@ def main():
     computeMenu = tk.Menu(menuBar, tearoff = 0)
     menuBar.add_cascade(label = "Compute", menu = computeMenu)
     computeMenu.add_command(label = "Compute Total", command = lambda: onComputeTotalEvent(tree, currentData))
+    computeMenu.add_separator()
+    # computeMenu.add_command(label = "Compute Risk Metrics", command = lambda: onComputeTotalEvent(tree, currentData))
+
 
     # Create a View menu
     viewMenu = tk.Menu(menuBar, tearoff = 0)
@@ -213,9 +223,6 @@ def main():
     helpMenu = tk.Menu(menuBar, tearoff = 0)
     menuBar.add_cascade(label = "Help", menu = helpMenu)
     helpMenu.add_command(label = "About", command = lambda: messagebox.showinfo("About", "Stock Data Manager v1.0.\nVisit https://github.com/iadewitz/Watchlist-application."))
-
-    # computeRiskMetricsButton = tk.Button(root, text = "Plot Data", command = lambda: onComputeVaREvent(tree, currentData))
-    # computeRiskMetricsButton.pack(pady = 10)
 
     root.mainloop()
 

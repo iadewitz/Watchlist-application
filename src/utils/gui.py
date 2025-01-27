@@ -23,6 +23,19 @@ def updateTable(tree, data):
     for column in tree["columns"]:
         tree.heading(column, text = column)
 
+def updateTotal(tree, data, newRow, currency):
+    # Add as the last row the total per day
+    datePattern = re.compile(r'^\d{4}-\d{2}-\d{2}$');
+        
+    # Find indices of columns that match the date pattern
+    notDatesIndices = [i for i, col in enumerate(data.columns) if not datePattern.match(col)];
+
+    totalRow = ["Total (" + currency + ")"] + [""] * (len(notDatesIndices) - 1) + newRow;
+    tree.insert("", "end", values = totalRow, tags = ("total", ))
+
+    # Apply bold font to the total row
+    tree.tag_configure("total", font = ("Helvetica", 10, "bold"))
+
 
 def onLoadData(tree):
     global currentData # The `global` keyword in Python is used to declare that a variable inside a function or block of code refers to a global variable,
@@ -253,6 +266,51 @@ def onSaveData(dataFrame):
     generateExcel(dataFrame, filePath);
     messagebox.showinfo("Info", "Data saved successfully @ " + filePath + " folder");
 
+def onComputeTotal(tree, data, currency):
+    global currentData;
 
+    # Get relevant dates
+    datePattern = re.compile(r'^\d{4}-\d{2}-\d{2}$');
+    dateIndices = [i for i, col in enumerate(data.columns) if datePattern.match(col)];
 
+    endDate = datetime.datetime.strptime(data.columns[dateIndices[-1]], '%Y-%m-%d') + datetime.timedelta(days = 1);
+    endDate = endDate.strftime('%Y-%m-%d');
+    startDate = data.columns[dateIndices[0]];
+    
+    # Get relevant FX rates
+    relevantFxRates = [];
+    for cur in data["Currency"].unique():
+        if cur != currency:
+            relevantFxRates.append(cur + currency + "=X");
+    fxRates = dict()
+    for item in relevantFxRates:
+        fxRates[item] = getValueByTickerYf(item, start = startDate, end = endDate); 
 
+    # Create a dataframe with the relevant dates
+    res = pd.DataFrame(index = fxRates.keys(), columns = data.columns[dateIndices]);
+    for key in res.index:
+            outDataFrame = fxRates[key]
+            for date in res.columns:
+                # Now fill in the prices
+                index = outDataFrame.index[date == outDataFrame["Date"]];
+                res.loc[key, date] = outDataFrame.loc[index, "Close_" + key].values[0];
+
+    totalDataFrame = pd.DataFrame(index = data.index, columns = data.columns[dateIndices]);
+    for index in totalDataFrame.index:
+        tmpCurrency = data.loc[index, "Currency"];
+        if tmpCurrency != currency:
+            for col in totalDataFrame.columns:
+                totalDataFrame.loc[index, col] = data.loc[index, "Quantity"] * data.loc[index, col] * res.loc[tmpCurrency + currency + "=X", col]
+        else:
+             for col in totalDataFrame.columns:
+                totalDataFrame.loc[index, col] = data.loc[index, "Quantity"] * data.loc[index, col]
+    
+    totalPerDay = totalDataFrame.sum(axis = 0);
+
+    # Round to 2 decimals
+    totalPerDay = totalPerDay.astype(float).round(2);
+    if sum(totalPerDay.index != data.columns[dateIndices]) == 0:
+        totalPerDay = list(totalPerDay);
+        updateTotal(tree, currentData, totalPerDay, currency);
+    else:
+        messagebox.showerror("Error", "Something went wrong.");
