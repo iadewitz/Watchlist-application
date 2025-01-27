@@ -12,7 +12,7 @@ import re
 def getValueByTicker(start = None, end = None):
     '''
     Wrapper function to download data
-    Priority: 1. Yahoo Finance, 2. 
+    Priority: 1. Yahoo Finance 2. 
     '''
 
 def getValueByTickerYf(ticker, start = None, end = None):

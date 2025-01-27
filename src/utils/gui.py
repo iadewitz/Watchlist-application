@@ -58,17 +58,20 @@ def getCurrentData():
     global currentData;
     return currentData;
 
-def onDownloadData(tree, startData, nDays):
+def onDownloadData(tree, startData, nDays, startDate, endDate):
     '''
     Download new data starting from current data 
     '''
     global currentData;
 
     # Get relevant dates
-    endDate = datetime.datetime.today().strftime('%Y-%m-%d')
-    startDate = datetime.datetime.strptime(endDate, '%Y-%m-%d') - datetime.timedelta(days = nDays)
-    startDate = startDate.strftime('%Y-%m-%d')
-
+    if nDays != '':
+        endDate = datetime.datetime.today().strftime('%Y-%m-%d')
+        startDate = datetime.datetime.strptime(endDate, '%Y-%m-%d') - datetime.timedelta(days = nDays)
+        startDate = startDate.strftime('%Y-%m-%d')
+    else:
+        startDate = startDate;
+        endDate = endDate;
     uniqueTicker = list(set(startData["Ticker"])) # Get unique tickers for speeding up download
     stockValue = dict()
     for item in uniqueTicker:

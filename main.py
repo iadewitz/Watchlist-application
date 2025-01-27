@@ -21,8 +21,15 @@ def onLoadDataEvent(tree):
 def onDownloadDataEvent(tree, data):
     def submitDays():
         global currentData; # The declaration of a variable as global must be contained where the assignment lives; otherwise, a new local variabale would be created
-        nDays = int(nDaysEntry.get());
-        gui.onDownloadData(tree, data, nDays);
+        nDays = '';
+        startDate = '';
+        endDate = '';
+        if nDaysEntry.get() != '':
+            nDays = int(nDaysEntry.get());
+        else:
+            startDate = startDateEntry.get();
+            endDate = endDateEntry.get();
+        gui.onDownloadData(tree, data, nDays, startDate, endDate);
         currentData = gui.getCurrentData(); # downloadButton change the value of currentData
         print(f"currentData updated: {currentData.head()}");
         selectDataWindow.destroy();
@@ -36,11 +43,11 @@ def onDownloadDataEvent(tree, data):
     nDaysEntry = tk.Entry(selectDataWindow);
     nDaysEntry.pack(pady = 5);
 
-    tk.Label(selectDataWindow, text = "Start Date:").pack(pady = 5);
+    tk.Label(selectDataWindow, text = "Start Date (YYYY-MM-DD):").pack(pady = 5);
     startDateEntry = tk.Entry(selectDataWindow);
     startDateEntry.pack(pady = 5);
 
-    tk.Label(selectDataWindow, text = "End Date:").pack(pady = 5);
+    tk.Label(selectDataWindow, text = "End Date (YYYY-MM-DD):").pack(pady = 5);
     endDateEntry = tk.Entry(selectDataWindow);
     endDateEntry.pack(pady = 5);
 
@@ -177,6 +184,8 @@ def main():
     editMenu = tk.Menu(menuBar, tearoff = 0)
     menuBar.add_cascade(label = "Edit", menu = editMenu)
     editMenu.add_command(label = "Compute Total", command = lambda: onComputeTotalEvent(tree, currentData))
+
+    
 
     # Create a Help menu
     helpMenu = tk.Menu(menuBar, tearoff = 0)
