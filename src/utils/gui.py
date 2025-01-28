@@ -147,7 +147,7 @@ def onAddData(tree, startData, newRow, startDate, endDate):
     global currentData;
 
     # Get startData relevant dates
-    if currentData is None:
+    if startData is None:
         startDate = startDate;
         endDate = endDate;
 

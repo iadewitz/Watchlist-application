@@ -72,7 +72,7 @@ def onAddDataEvent(tree, startData):
 
         # Process the data (e.g., add to currentData)
         newRow = pd.DataFrame([[ticker, purchasePrice, purchaseDate, quantity]], columns = ["Ticker", "PurchasePrice", "PurchaseDate", "Quantity"]);
-        gui.onAddData(tree, startData, newRow, startDate, endDate);
+        gui.onAddData(tree, currentData, newRow, startDate, endDate);
         currentData = gui.getCurrentData(); 
         # print(f"currentData updated: {currentData.head()}");
         addWindow.destroy();
