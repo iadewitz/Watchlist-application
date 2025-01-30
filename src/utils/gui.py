@@ -5,6 +5,9 @@ import datetime
 from src.utils.download_data import *
 from src.utils.excel_generator import *
 import re
+import matplotlib.pyplot as plt
+import numpy as np
+import random
 
 def updateTable(tree, data):
     # Delete existing data
@@ -314,3 +317,59 @@ def onComputeTotal(tree, data, currency):
         updateTotal(tree, currentData, totalPerDay, currency);
     else:
         messagebox.showerror("Error", "Something went wrong.");
+
+def plotKeys(data, keys):
+
+    # Catch exceptions
+    if data is None or data.empty:
+        messagebox.showerror("Error", "There are no loaded data to plot!")
+        return
+    
+    for key in keys:
+        if key not in data.index:
+                messagebox.showerror("Error", f"Key {key} not found in the data!")
+                return
+
+    # Filter data for the selected ticker
+    keysData = data.loc[keys, :];
+
+    datePattern = re.compile(r'^\d{4}-\d{2}-\d{2}$');
+    dateIndices = [i for i, col in enumerate(data.columns) if datePattern.match(col)];
+    dates = [col for col in keysData.columns if datePattern.match(col)];
+    keysDataValues = keysData.loc[:, dates];
+
+    # Plot the data
+    plt.figure(figsize = (10, 6))
+    xCoord = list(range(0, keysDataValues.shape[1]));
+    for key in keys:
+        yCoord = keysDataValues.loc[key,:];
+        color = (random.random(), random.random(), random.random());
+        plt.plot(xCoord,
+                 yCoord,
+                 label = key,
+                 color = color);
+        plt.axhline(float(keysData.loc[key, "PurchasePrice"]),
+                    linestyle = "dashed",
+                    xmin = 0,
+                    xmax = 1,
+                    color = color);
+
+    plt.xlabel("Time");
+    plt.ylabel("Price");
+    plt.title(f"Series Data for {keys}");
+    plt.legend();
+
+    # Set x-axis tick labels to dates
+    xCoordIndices = [];
+    p = 0.1;  # Plot 10% of the labels
+    step = max(1, int(len(xCoord) * p));  # Ensure at least one label is plotted
+
+    for i in range(0, len(xCoord), step):
+        xCoordIndices.append(i);
+
+    # Filter the dates to match the selected indices
+    filteredDates = [dates[i] for i in xCoordIndices]; # Select elements from a list given a list of indices
+
+    plt.xticks(ticks = xCoordIndices, labels = filteredDates, rotation = 45);
+
+    plt.show();

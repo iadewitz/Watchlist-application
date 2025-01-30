@@ -8,10 +8,6 @@ import sys
 # Import custom modules
 from src.utils import gui
 
-# # Write Excel
-# outFileName = 
-# generate_excel(finalDataFrame, outFileName)
-
 def onLoadDataEvent(tree):
     global currentData;
     gui.onLoadData(tree);
@@ -157,6 +153,30 @@ def onComputeTotalEvent(tree, currentData):
     submitButton = tk.Button(computeTotalWindow, text = "Submit", command = computeTotal);
     submitButton.pack(pady = 10);
 
+def onPlot(data):
+
+    def onPlotButton():
+        selectedKeys = [listBox.get(i) for i in listBox.curselection()];
+        gui.plotKeys(data, selectedKeys);
+
+    plotWindow = tk.Toplevel();
+    plotWindow.title("Plot series");
+    plotWindow.geometry("600x450");
+
+    tk.Label(plotWindow, text = "Select Ticker:").pack(pady = 5);
+
+    # Create a listbox
+    listBox = tk.Listbox(plotWindow, selectmode = tk.MULTIPLE);
+    listBox.pack(fill = tk.BOTH, expand = True, pady = 5);
+
+    # Add tickers to the listbox
+    keys = data.index;
+    for key in keys:
+        listBox.insert(tk.END, key);
+
+    plotButton = tk.Button(plotWindow, text = "Plot", command = onPlotButton)
+    plotButton.pack(pady = 10)
+
 
 def main():
     # GUI setup
@@ -217,14 +237,14 @@ def main():
     viewMenu.add_command(label = "Prices", command = lambda: onShowPrices(tree, currentData));
     viewMenu.add_command(label = "Returns", command = lambda: onShowReturns(tree, currentData));
     viewMenu.add_separator()
-    viewMenu.add_command(label = "Plot", command = lambda: onPlot(currentData, riskMetrics));
+    viewMenu.add_command(label = "Plot", command = lambda: onPlot(currentData));
 
     # Create a Help menu
     helpMenu = tk.Menu(menuBar, tearoff = 0)
     menuBar.add_cascade(label = "Help", menu = helpMenu)
     helpMenu.add_command(label = "About", command = lambda: messagebox.showinfo("About", "Stock Data Manager v1.0.\nVisit https://github.com/iadewitz/Watchlist-application."))
 
-    root.mainloop()
+    # root.mainloop()
 
 # Variables definiton
 currentData = None;
