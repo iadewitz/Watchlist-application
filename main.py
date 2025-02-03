@@ -174,8 +174,8 @@ def onPlot(data):
     for key in keys:
         listBox.insert(tk.END, key);
 
-    plotButton = tk.Button(plotWindow, text = "Plot", command = onPlotButton)
-    plotButton.pack(pady = 10)
+    plotButton = tk.Button(plotWindow, text = "Plot", command = onPlotButton);
+    plotButton.pack(pady = 10);
 
 
 def main():

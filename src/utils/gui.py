@@ -322,12 +322,12 @@ def plotKeys(data, keys):
 
     # Catch exceptions
     if data is None or data.empty:
-        messagebox.showerror("Error", "There are no loaded data to plot!")
+        messagebox.showerror("Error", "There are no loaded data to plot!");
         return
     
     for key in keys:
         if key not in data.index:
-                messagebox.showerror("Error", f"Key {key} not found in the data!")
+                messagebox.showerror("Error", f"Key {key} not found in the data!");
                 return
 
     # Filter data for the selected ticker
@@ -339,7 +339,7 @@ def plotKeys(data, keys):
     keysDataValues = keysData.loc[:, dates];
 
     # Plot the data
-    plt.figure(figsize = (10, 6))
+    plt.figure(figsize = (10, 6));
     xCoord = list(range(0, keysDataValues.shape[1]));
     for key in keys:
         yCoord = keysDataValues.loc[key,:];
