@@ -177,6 +177,11 @@ def onPlot(data):
     plotButton = tk.Button(plotWindow, text = "Plot", command = onPlotButton);
     plotButton.pack(pady = 10);
 
+def onShowPrices(tree, data):
+    gui.updateTable(tree, currentData);
+
+def onShowReturns(tree, data):
+    gui.updateReturns(tree, data);
 
 def main():
     # GUI setup
@@ -218,7 +223,7 @@ def main():
     # Create a File menu
     fileMenu = tk.Menu(menuBar, tearoff = 0)
     menuBar.add_cascade(label = "File", menu = fileMenu)
-    fileMenu.add_command(label = "Load Last Data", command = lambda: onLoadDataEvent(tree))
+    fileMenu.add_command(label = "Load Data", command = lambda: onLoadDataEvent(tree))
     fileMenu.add_command(label = "Save Current View", command = lambda: gui.onSaveData(currentData))
     fileMenu.add_separator()
     fileMenu.add_command(label = "Exit", command = root.destroy)
@@ -242,12 +247,14 @@ def main():
     # Create a Help menu
     helpMenu = tk.Menu(menuBar, tearoff = 0)
     menuBar.add_cascade(label = "Help", menu = helpMenu)
-    helpMenu.add_command(label = "About", command = lambda: messagebox.showinfo("About", "Stock Data Manager v1.0.\nVisit https://github.com/iadewitz/Watchlist-application."))
+    helpMenu.add_command(label = "About", command = lambda: messagebox.showinfo("About",
+                                                                                "Stock Data Manager v1.0.\nVisit https://github.com/iadewitz/Watchlist-application."))
 
     # root.mainloop()
 
 # Variables definiton
 currentData = None;
+currentReturns = None;
 riskMetrics = None;
 
 if __name__ == "__main__":

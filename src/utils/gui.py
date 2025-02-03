@@ -12,19 +12,21 @@ import random
 def updateTable(tree, data):
     # Delete existing data
     for i in tree.get_children():
-        tree.delete(i)
+        tree.delete(i);
 
     # Set up columns
-    tree["columns"] = list(data.columns)
-    tree["show"] = "headings"
+    tree["columns"] = list(data.columns);
+    tree["show"] = "headings";
 
     # Fill the data
-    dataRows = data.to_numpy().tolist()
+    dataRows = data.to_numpy().tolist();
     for row in dataRows:
-        tree.insert("", "end", values = row)
+        tree.insert("", "end", values = row);
     
     for column in tree["columns"]:
-        tree.heading(column, text = column)
+        tree.heading(column, text = column);
+
+    messagebox.showinfo("Info", "Prices updated successfully");
 
 def updateTotal(tree, data, newRow, currency):
     # Add as the last row the total per day
@@ -38,6 +40,47 @@ def updateTotal(tree, data, newRow, currency):
 
     # Apply bold font to the total row
     tree.tag_configure("total", font = ("Helvetica", 10, "bold"))
+
+def updateReturns(tree, data):
+    # Compute returns
+    global currentReturns;
+
+    datePattern = re.compile(r'^\d{4}-\d{2}-\d{2}$');
+        
+    # Find indices of columns that match the date pattern
+    notDatesIndices = [i for i, col in enumerate(data.columns) if not datePattern.match(col)];
+    dateIndices = [i for i, col in enumerate(data.columns) if datePattern.match(col)];
+    del dateIndices[0]; # We don't need the first date
+    relevantColumns = notDatesIndices + dateIndices;
+
+    # Define new dataset
+    currentReturns = pd.DataFrame(index = currentData.index,
+                                  columns = data.columns[relevantColumns]);
+
+    # Populate returns table
+    dateIndices = [i for i, col in enumerate(currentReturns.columns) if datePattern.match(col)];
+    currentReturns[data.columns[notDatesIndices]] = data[data.columns[notDatesIndices]];
+    for col in currentReturns.columns[dateIndices]:
+        idCol = [i for i, column in enumerate(data.columns) if column == col][0];
+        currentReturns[col] = np.round((np.log(data.iloc[:, idCol]) - np.log(data.iloc[:, idCol - 1]))*100, 6);
+    
+    # Delete existing data
+    for i in tree.get_children():
+        tree.delete(i);
+
+    # Set up columns
+    tree["columns"] = list(currentReturns.columns);
+    tree["show"] = "headings";
+
+    # Fill the data
+    dataRows = currentReturns.to_numpy().tolist();
+    for row in dataRows:
+        tree.insert("", "end", values = row);
+    
+    for column in tree["columns"]:
+        tree.heading(column, text = column);
+
+    messagebox.showinfo("Info", "Returns updated successfully");
 
 
 def onLoadData(tree):
@@ -65,7 +108,6 @@ def onLoadData(tree):
 
     # Update table
     updateTable(tree, currentData);
-    messagebox.showinfo("Info", "Last data loaded successfully");
 
 def getCurrentData():
     global currentData;
@@ -144,7 +186,6 @@ def onDownloadData(tree, startData, nDays, startDate, endDate):
     currentData = newData;
     
     updateTable(tree, currentData)
-    messagebox.showinfo("Info", "New data downloaded successfully")
 
 def onAddData(tree, startData, newRow, startDate, endDate):
     global currentData;
