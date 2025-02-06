@@ -208,6 +208,7 @@ def onAddData(tree, startData, newRow, startDate, endDate):
         # Create the row that will be concatanated to currentData
         res = pd.DataFrame(index = [key])
         res.loc[key, "Ticker"] = newRow.loc[0, "Ticker"];
+        res.loc[key, "Exchange"] = outDataFrame.loc[0, "Exchange"];
         res.loc[key, "CompanyName"] = outDataFrame.loc[0, "Name"];
         res.loc[key, "PurchaseDate"] = newRow.loc[0, "PurchaseDate"];
         res.loc[key, "PurchasePrice"] = newRow.loc[0, "PurchasePrice"];
@@ -269,6 +270,7 @@ def onAddData(tree, startData, newRow, startDate, endDate):
         newColumns = [col for i, col in enumerate(currentData.columns) if i not in dateIndices] + uniqueDates     
         res = pd.DataFrame(index = [key], columns = newColumns);
         res.loc[key, "Ticker"] = newRow.loc[0, "Ticker"];
+        res.loc[key, "Exchange"] = outDataFrame.loc[0, "Exchange"];
         res.loc[key, "CompanyName"] = outDataFrame.loc[0, "Name"];
         res.loc[key, "PurchaseDate"] = newRow.loc[0, "PurchaseDate"];
         res.loc[key, "PurchasePrice"] = newRow.loc[0, "PurchasePrice"];
